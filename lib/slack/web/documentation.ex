@@ -36,7 +36,6 @@ defmodule Slack.Web.Documentation do
 
   def arguments_with_values(documentation) do
     documentation
-    |> IO.inspect()
     |> arguments
     |> Enum.reduce([], fn var = {arg, _, _}, acc ->
       [{arg, var} | acc]
