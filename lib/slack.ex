@@ -72,6 +72,18 @@ defmodule Slack do
   [Slack API types]: https://api.slack.com/types
   """
 
+  use Application
+
+  @spec start(Application.start_type(), any) :: {:error, any} | {:ok, pid} | {:ok, pid, any}
+  def start(_start_type, _args) do
+    import Supervisor.Spec, warn: false
+
+    children = Slack.API.supervisor_children()
+
+    opts = [strategy: :one_for_one, name: Slack.Supervisor]
+    Supervisor.start_link(children, opts)
+  end
+
   defmacro __using__(_) do
     quote do
       import Slack

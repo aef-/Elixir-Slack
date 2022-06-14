@@ -1,16 +1,29 @@
 defmodule Slack.Web.Client do
   @moduledoc """
-  Defines a custom client for making calls to Slack Web API.
+  Default http client used for all requests to Slack Web API.
+
+  All Slack RPC method calls are delivered via post.
+
+  Parsed body data is returned unwrapped to the caller.
   """
 
-  @type url :: String.t()
-  @type form_body :: {:form, Keyword.t()}
-  @type multipart_form_body :: {:multipart, nonempty_list(tuple())}
-  @type body :: form_body() | multipart_form_body()
+  use Tesla
 
-  @doc """
-  Return value is passed directly to caller of generated Web API
-  module/functions. Can be any term.
-  """
-  @callback post!(url :: url, body :: body) :: term()
+  plug(Tesla.Middleware.FormUrlencoded)
+  plug(Tesla.Middleware.JSON, engine: Jason, engine_opts: [keys: :atoms])
+
+  @impl true
+  def post!(url, body) do
+    url
+    |> post!(body)
+    |> Map.fetch!(:body)
+  end
+
+  @impl true
+  def post(url, body) do
+    with {:ok, tesla} <- post(url, body),
+         {:ok, body} <- Map.fetch(tesla, :body) do
+      {:ok, body}
+    end
+  end
 end
