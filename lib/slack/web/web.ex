@@ -37,6 +37,25 @@ Enum.each(Slack.Web.get_documentation(), fn {module_name, functions} ->
       arguments = Documentation.arguments(doc)
       argument_value_keyword_list = Documentation.arguments_with_values(doc)
 
+      errors = Map.get(doc, :errors, [])
+
+      errors =
+        if is_nil(errors) do
+          []
+        else
+          errors
+        end
+
+      Enum.each(errors, fn {name, message} ->
+        error_module = Module.concat(Slack.Web.Errors, Macro.camelize(name))
+
+        unless function_exported?(error_module, :__info__, 1) do
+          defmodule error_module do
+            defexception message: message
+          end
+        end
+      end)
+
       @doc """
       #{Documentation.to_doc_string(doc)}
       """

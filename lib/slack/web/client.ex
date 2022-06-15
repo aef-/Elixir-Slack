@@ -10,18 +10,31 @@ defmodule Slack.Web.Client do
   def post!(url, body) do
     Tesla.post!(client(), url, body)
     |> Map.fetch!(:body)
+    |> Jason.decode!(keys: :atoms)
+    |> case do
+      %{ok: false, error: error} ->
+        raise Module.concat(Slack.Web.Errors, Macro.camelize(error))
+
+      body ->
+        body
+    end
   end
 
   def post(url, body) do
-    with {:ok, tesla} <- Tesla.post(client(), url, body),
-         {:ok, body} <- Map.fetch(tesla, :body) do
+    with {:ok, %Tesla.Env{body: body}} <- Tesla.post(client(), url, body),
+         {:ok, %{ok: true} = body} <- Jason.decode(body, keys: :atoms) do
       {:ok, body}
+    else
+      {:ok, %{error: error}} ->
+        {:error, error}
+
+      error ->
+        error
     end
   end
 
   defp client() do
     [
-      {Tesla.Middleware.JSON, engine: Jason, engine_opts: [keys: :atoms]},
       Tesla.Middleware.FormUrlencoded
     ]
     |> Tesla.client()
