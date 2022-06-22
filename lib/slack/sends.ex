@@ -125,10 +125,10 @@ defmodule Slack.Sends do
   defp open_im_channel(token, user_id, on_success, on_error) do
     im_open =
       with url <- Application.get_env(:slack, :url, "https://slack.com") <> "/api/im.open",
-           headers <- {:form, [token: token, user: user_id]},
-           options <-
+           data <- [token: token, user: user_id],
+           headers <-
              Application.get_env(:slack, :web_http_client_opts, [{"Content-Type", "utf-8"}]) do
-        HTTPoison.post(url, headers, options)
+        Tesla.post(url, data, headers)
       end
 
     case im_open do

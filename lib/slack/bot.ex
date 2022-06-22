@@ -57,10 +57,10 @@ defmodule Slack.Bot do
 
         {:ok, pid}
 
-      {:error, %HTTPoison.Error{reason: :connect_timeout}} ->
+      {:error, %Tesla.Error{reason: :connect_timeout}} ->
         {:error, "Timed out while connecting to the Slack RTM API"}
 
-      {:error, %HTTPoison.Error{reason: :nxdomain}} ->
+      {:error, %Tesla.Error{reason: :nxdomain}} ->
         {:error, "Could not connect to the Slack RTM API"}
 
       {:error, %Slack.JsonDecodeError{string: "You are sending too many requests. Please relax."}} ->
